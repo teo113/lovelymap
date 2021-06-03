@@ -35,6 +35,7 @@ Readme contents:
 * PostgreSQL tables as data source (localhost for testing)
 * map layers rendered as GeoJson? WKTs? Tiled WMS?
 * for simplicity, bypass use of GeoServer for serving PostgreSQL layers
+* hosting on Heroku? Azure?
 
 04 - **development plan**
 * Theo to get simple OpenLayers and/or Leaflet map up and running in required projections
