@@ -33,7 +33,7 @@ Readme contents:
 * PostgreSQL tables as data source (localhost for testing)
 * map layers rendered as GeoJson? WKTs? Tiled WMS?
 * for simplicity, bypass use of GeoServer for serving PostgreSQL layers
-* hosting on Heroku? Azure? build locally for now?
+* hosting on Heroku? Azure? build locally for now? Do we even need to host lovelymap anywhere if it's running on the client (browser)?
 
 04 - **development plan**
 * Theo to get simple OpenLayers and/or Leaflet map up and running in required projections
