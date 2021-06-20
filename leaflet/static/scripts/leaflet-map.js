@@ -10,16 +10,35 @@ var transformCoords = function(arr) {
 };
 
 ////////////////////////////// MAP LAYERS
+//osm
+var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+})//.addTo(map);
+
+//os
 os_key = 'N3vMFK52P63Ao1dAp4cRq31OHpnXz5rW'
+os_att = '&copy; Crown copyright and database rights 2021 OS [100059651]'
 
-var os_outdoor = L.tileLayer('https://api.os.uk/maps/raster/v1/zxy/Outdoor_27700/{z}/{x}/{y}.png?key=' + os_key)//.addTo(map);
-var os_light = L.tileLayer('https://api.os.uk/maps/raster/v1/zxy/Light_27700/{z}/{x}/{y}.png?key=' + os_key)//.addTo(map);
+var os_road = L.tileLayer('https://api.os.uk/maps/raster/v1/zxy/Road_27700/{z}/{x}/{y}.png?key=' + os_key, {attribution: os_att})//.addTo(map);
+var os_outdoor = L.tileLayer('https://api.os.uk/maps/raster/v1/zxy/Outdoor_27700/{z}/{x}/{y}.png?key=' + os_key, {attribution: os_att})//.addTo(map);
+var os_light = L.tileLayer('https://api.os.uk/maps/raster/v1/zxy/Light_27700/{z}/{x}/{y}.png?key=' + os_key, {attribution: os_att})//.addTo(map);
 
+//esri
 var arcgis_topo = L.esri.tiledMapLayer({
     url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer',
-    maxZoom: 19,
-    minZoom: 6
+    minZoom: 6,
+    maxZoom: 19
     });//.addTo(map);
+
+//astun
+var astun_open = L.tileLayer.wms('http://t0.ads.astuntechnology.com/open/osopen/service', {
+    layers: 'osopen',
+    format: 'image/png',
+    maxZoom: 14,
+    minZoom: 0,
+    continuousWorld: true,
+    attribution: 'Astun Data Service &copy; Ordnance Survey.'
+})
 
 ////////////////////////////// MAP SETTINGS
 var map_options = {
@@ -33,7 +52,7 @@ var map_options = {
         transformCoords([ -238375.0, 0.0 ]),
         transformCoords([ 900000.0, 1376256.0 ])
     ],
-    attributionControl: false
+    attributionControl: true
 };
 
 ////////////////////////////// MAP OBJECT
@@ -42,10 +61,15 @@ var map = L.map('leaflet-map', map_options);
 
 ////////////////////////////// MAP CONTROLS
 var basemaps = {
+    'OSM': osm,
+    'Astun Open': astun_open,
     'Light': os_light,
-    'Outdoor': os_outdoor
+    'Outdoor': os_outdoor,
+    'Road': os_road
 };
 
 var overlaymaps = {};
 
 L.control.layers(basemaps, overlaymaps).addTo(map);
+L.control.mousePosition().addTo(map);
+L.Control.geocoder().addTo(map);

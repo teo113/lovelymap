@@ -19,6 +19,7 @@ var tilegrid = new ol.tilegrid.TileGrid({
 ////////////////////////////// MAP LAYERS
 os_service = 'https://api.os.uk/maps/raster/v1/zxy'
 os_key = 'N3vMFK52P63Ao1dAp4cRq31OHpnXz5rW'
+os_att = '&copy; Crown copyright and database rights 2021 OS [100059651]'
 
 var basemaps = new ol.layer.Group({
   'title': 'Basemaps',
@@ -36,7 +37,7 @@ var basemaps = new ol.layer.Group({
               url: os_service + '/Road_27700/{z}/{x}/{y}.png?key=' + os_key,
               projection: 'EPSG:27700',
               tileGrid: tilegrid,
-              attributions: 'Contains OS data © Crown copyright and database right 2021'
+              attributions: os_att
           })
       }),
       new ol.layer.Tile({
@@ -47,7 +48,7 @@ var basemaps = new ol.layer.Group({
               url: os_service + '/Outdoor_27700/{z}/{x}/{y}.png?key=' + os_key,
               projection: 'EPSG:27700',
               tileGrid: tilegrid,
-              attributions: 'Contains OS data © Crown copyright and database right 2021'
+              attributions: os_att
           })
       }),
       new ol.layer.Tile({
@@ -58,13 +59,19 @@ var basemaps = new ol.layer.Group({
               url: os_service + '/Light_27700/{z}/{x}/{y}.png?key=' + os_key,
               projection: 'EPSG:27700',
               tileGrid: tilegrid,
-              attributions: 'Contains OS data © Crown copyright and database right 2021'
+              attributions: os_att
           })
       })
   ]
 });
 
 ////////////////////////////// MAP CONTROLS
+
+// popup
+var popup = new ol.Overlay.Popup();
+//map.addOverlay(popup);
+
+// mouse coordinates
 var mousePositionCtrl = new ol.control.MousePosition({
   coordinateFormat: ol.coordinate.createStringXY(2),
   projection: proj27700,
@@ -72,7 +79,26 @@ var mousePositionCtrl = new ol.control.MousePosition({
   undefinedHTML: '&nbsp;'
 });
 
+// layer switcher
 var layerSwitcher = new ol.control.LayerSwitcher();
+
+// address search
+var geocoder = new Geocoder('nominatim', {
+  provider: 'osm',
+  lang: 'en', //en-US, fr-FR
+  placeholder: 'Search for ...',
+  //targetType: 'text-input',
+  limit: 5,
+  keepOpen: true
+});
+
+//Listen when an address is chosen
+geocoder.on('addresschosen', function (evt) {
+	console.info(evt);
+  window.setTimeout(function () {
+    popup.show(evt.coordinate, evt.address.formatted);
+  }, 3000);
+});
 
 ////////////////////////////// MAP OBJECT
 var view = new ol.View({
@@ -81,7 +107,7 @@ var view = new ol.View({
     extent: mapextent,
     zoom: 8,
     minZoom: 6,
-    maxZoom: 10
+    maxZoom: 19
 });
 
 var map = new ol.Map({
@@ -89,6 +115,6 @@ var map = new ol.Map({
     layers: [
       basemaps
     ],
-    controls: ol.control.defaults().extend([mousePositionCtrl, layerSwitcher]),
+    controls: ol.control.defaults().extend([mousePositionCtrl, layerSwitcher, geocoder, popup]),
     view: view
     });
