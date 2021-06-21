@@ -1,4 +1,5 @@
 ////////////////////////////// MAP SETTINGS
+// register BNG projection
 proj4.defs(
   'EPSG:27700',
   '+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 ' +
@@ -8,19 +9,22 @@ proj4.defs(
 );
 ol.proj.proj4.register(proj4);
 var proj27700 = ol.proj.get('EPSG:27700');
-var mapcenter = [310000, 511000]
+var mapcenter = [321260, 232453]
 var mapextent = [-238375, 0, 908505, 1376256];
 
+// tile grid for OS basemaps
 var tilegrid = new ol.tilegrid.TileGrid({
   resolutions: [ 896.0, 448.0, 224.0, 112.0, 56.0, 28.0, 14.0, 7.0, 3.5, 1.75 ],
   origin: [ -238375.0, 1376256.0 ]
 });
 
 ////////////////////////////// MAP LAYERS
+// OS requirements
 os_service = 'https://api.os.uk/maps/raster/v1/zxy'
 os_key = 'N3vMFK52P63Ao1dAp4cRq31OHpnXz5rW'
 os_att = '&copy; Crown copyright and database rights 2021 OS [100059651]'
 
+// basemap group
 var basemaps = new ol.layer.Group({
   'title': 'Basemaps',
   layers: [
@@ -61,6 +65,15 @@ var basemaps = new ol.layer.Group({
               tileGrid: tilegrid,
               attributions: os_att
           })
+      }),
+      new ol.layer.Tile({
+        title: 'World Imagery',
+        type: 'base',
+        visible: false,
+        source: new ol.source.XYZ({
+          url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}.png',
+          attributions: 'Esri, Maxar, Earthstar Geographics, USDA FSA, USGS, Aerogrid, IGN, IGP, and the GIS User Community'
+        })
       })
   ]
 });
@@ -69,7 +82,6 @@ var basemaps = new ol.layer.Group({
 
 // popup
 var popup = new ol.Overlay.Popup();
-//map.addOverlay(popup);
 
 // mouse coordinates
 var mousePositionCtrl = new ol.control.MousePosition({
@@ -92,29 +104,32 @@ var geocoder = new Geocoder('nominatim', {
   keepOpen: true
 });
 
-//Listen when an address is chosen
+// listen when an address is chosen
 geocoder.on('addresschosen', function (evt) {
 	console.info(evt);
   window.setTimeout(function () {
     popup.show(evt.coordinate, evt.address.formatted);
-  }, 3000);
+  }, 500);
 });
 
 ////////////////////////////// MAP OBJECT
+// view settings
 var view = new ol.View({
     projection: proj27700,
     center: mapcenter,
     extent: mapextent,
-    zoom: 8,
+    zoom: 14,
     minZoom: 6,
     maxZoom: 19
 });
 
+// the map
 var map = new ol.Map({
     target: 'ol-map',
     layers: [
       basemaps
     ],
-    controls: ol.control.defaults().extend([mousePositionCtrl, layerSwitcher, geocoder, popup]),
+    controls: ol.control.defaults().extend([mousePositionCtrl, layerSwitcher, geocoder]),
+    overlays: [popup],
     view: view
     });
