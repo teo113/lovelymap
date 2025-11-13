@@ -1,0 +1,19 @@
+{
+  "name": "maplibre",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "vite"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "maplibre-gl": "^5.12.0",
+    "vite": "^7.2.2",
+    "@watergis/maplibre-gl-export": "^4.0.8",
+    "terra-draw": "^0.0.1-alpha.52"
+  }
+}

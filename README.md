@@ -1,3 +1,5 @@
+Note: this is an old repo. Being re-used in 2025. Please ignore this readme (keeping for nostalgia)
+
 # lovelymap v0.1
 A simple JavaScript web mapping app.
 

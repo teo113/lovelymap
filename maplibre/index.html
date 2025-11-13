@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LovelyMap - MapLibre Concept</title>
+    <link rel="stylesheet" href="./src/styles.css">
+</head>
+<body>
+    <div id="map"></div>
+    
+    <!-- Coordinates Display -->
+    <div id="coordinates" class="coordinates-box"></div>
+    
+    <!-- Control Panels -->
+    <div id="controls-container">
+        <!-- Basemap Selector -->
+        <div class="control-panel">
+            <button class="control-btn" id="basemap-toggle" title="Basemap Selector">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+            </button>
+            <div class="control-content" id="basemap-content">
+                <h3>Basemap</h3>
+                <div class="basemap-options">
+                    <label><input type="radio" name="basemap" value="voyager" checked> Voyager</label>
+                    <label><input type="radio" name="basemap" value="positron"> Positron</label>
+                    <label><input type="radio" name="basemap" value="dark"> Dark Matter</label>
+                    <label><input type="radio" name="basemap" value="osm"> OpenStreetMap</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Layer Selector -->
+        <div class="control-panel">
+            <button class="control-btn" id="layers-toggle" title="Layer Selector">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                    <polyline points="2 17 12 22 22 17"></polyline>
+                    <polyline points="2 12 12 17 22 12"></polyline>
+                </svg>
+            </button>
+            <div class="control-content" id="layers-content">
+                <h3>Layers</h3>
+                <div class="layer-group">
+                    <h4>Data Layers</h4>
+                    <label><input type="checkbox" id="layer-points"> Points of Interest</label>
+                    <label><input type="checkbox" id="layer-lines"> Transportation</label>
+                    <label><input type="checkbox" id="layer-polygons"> Land Use</label>
+                </div>
+                <div class="layer-group">
+                    <h4>WMS Layer</h4>
+                    <label><input type="checkbox" id="layer-wms"> Weather Overlay</label>
+                    <div id="wms-controls" style="display: none;">
+                        <label>Opacity: <span id="wms-opacity-value">70%</span></label>
+                        <input type="range" id="wms-opacity" min="0" max="100" value="70">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3D Controls -->
+        <div class="control-panel">
+            <button class="control-btn" id="3d-toggle" title="3D Toggle">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
+            </button>
+            <div class="control-content" id="3d-content">
+                <h3>3D View</h3>
+                <label><input type="checkbox" id="3d-buildings"> 3D Buildings</label>
+                <label><input type="checkbox" id="3d-terrain"> 3D Terrain</label>
+                <label><input type="checkbox" id="globe-view"> Globe View</label>
+            </div>
+        </div>
+
+        <!-- Tools -->
+        <div class="control-panel">
+            <button class="control-btn" id="tools-toggle" title="Tools">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                </svg>
+            </button>
+            <div class="control-content" id="tools-content">
+                <h3>Tools</h3>
+                <button class="tool-btn" id="measure-tool">📏 Measure Distance</button>
+                <button class="tool-btn" id="draw-point">📍 Draw Point</button>
+                <button class="tool-btn" id="draw-line">📏 Draw Line</button>
+                <button class="tool-btn" id="draw-polygon">⬟ Draw Polygon</button>
+                <button class="tool-btn" id="clear-draw">🗑️ Clear Drawings</button>
+                <button class="tool-btn" id="export-map">💾 Export Map</button>
+            </div>
+        </div>
+
+        <!-- Info Button -->
+        <div class="control-panel">
+            <button class="control-btn" id="info-toggle" title="Info">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+            </button>
+            <div class="control-content" id="info-content">
+                <h3>About</h3>
+                <p><strong>LovelyMap</strong></p>
+                <p>A MapLibre GL concept project</p>
+                <p>Author: Teo</p>
+                <p>Built with Cursor AI</p>
+                <hr>
+                <p><small>MapLibre GL JS v5.12.0<br>Vite Development Server</small></p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
