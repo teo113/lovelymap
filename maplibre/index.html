@@ -7,6 +7,14 @@
     <link rel="stylesheet" href="./src/styles.css">
 </head>
 <body>
+    <!-- Header -->
+    <div id="header">
+        <div class="header-content">
+            <div class="header-logo">🗺️</div>
+            <div class="header-title">Concept Map</div>
+        </div>
+    </div>
+    
     <div id="map"></div>
     
     <!-- Coordinates Display -->
@@ -27,10 +35,11 @@
             <div class="control-content" id="basemap-content">
                 <h3>Basemap</h3>
                 <div class="basemap-options">
-                    <label><input type="radio" name="basemap" value="voyager" checked> Voyager</label>
-                    <label><input type="radio" name="basemap" value="positron"> Positron</label>
-                    <label><input type="radio" name="basemap" value="dark"> Dark Matter</label>
-                    <label><input type="radio" name="basemap" value="osm"> OpenStreetMap</label>
+                    <label><input type="radio" name="basemap" value="voyager" autocomplete="off"> Voyager</label>
+                    <label><input type="radio" name="basemap" value="positron" autocomplete="off"> Positron</label>
+                    <label><input type="radio" name="basemap" value="dark" autocomplete="off"> Dark Matter</label>
+                    <label><input type="radio" name="basemap" value="satellite" autocomplete="off"> Satellite</label>
+                    <label><input type="radio" name="basemap" value="osm" autocomplete="off"> OpenStreetMap</label>
                 </div>
             </div>
         </div>
@@ -73,10 +82,10 @@
                 </svg>
             </button>
             <div class="control-content" id="3d-content">
-                <h3>3D View</h3>
+                <h3>3D Settings</h3>
+                <label><input type="checkbox" id="3d-view"> 3D View</label>
                 <label><input type="checkbox" id="3d-buildings"> 3D Buildings</label>
                 <label><input type="checkbox" id="3d-terrain"> 3D Terrain</label>
-                <label><input type="checkbox" id="globe-view"> Globe View</label>
             </div>
         </div>
 
