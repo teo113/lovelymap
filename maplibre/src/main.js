@@ -59,8 +59,13 @@ const map = new maplibregl.Map({
     zoom: 12,
     pitch: 0,
     bearing: 0,
+    maxPitch: 85,
     dragRotate: false, // Disable rotation
-    touchZoomRotate: false
+    touchZoomRotate: false,
+    maxBounds: [
+        [-6, 49.8], // Southwest coordinates
+        [-0.8, 52.1]  // Northeast coordinates
+    ]
 });
 
 // State management
@@ -371,61 +376,33 @@ function setupBasemapSelector() {
                 currentBasemap = newBasemap;
                 map.setStyle(basemaps[newBasemap]);
                 
-                // Wait for style to fully load, then for map to be idle
-                map.once('styledata', () => {
-                    // Immediately show drawings as static GeoJSON to maintain visual continuity
-                    if (drawingsSnapshot.length > 0) {
-                        savedDrawings = drawingsSnapshot;
-                        displaySavedDrawings();
-                    }
+                map.once('style.load', () => {
+                    // This event fires after the style and all its resources have been loaded.
+                    addDummyLayers();
+                    addWMSLayer();
                     
-                    // Wait for map to be completely ready (especially important for vector basemaps)
-                    map.once('idle', () => {
-                        addDummyLayers();
-                        addWMSLayer();
-                        
-                        // Completely reinitialize TerraDraw with new map style
-                        terraDraw = new TerraDraw({
-                            adapter: new TerraDrawMapLibreGLAdapter({ map }),
-                            modes: [
-                                new TerraDrawPointMode(),
-                                new TerraDrawLineStringMode(),
-                                new TerraDrawPolygonMode()
-                            ]
-                        });
-                        
-                        // Restore drawings after TerraDraw is fully initialized
-                        if (drawingsSnapshot.length > 0) {
-                            if (wasDrawingActive && activeToolId) {
-                                // Remove static display and reactivate drawing mode
-                                setTimeout(() => {
-                                    removeStaticDrawings();
-                                    terraDraw.start();
-                                    terraDraw.addFeatures(drawingsSnapshot);
-                                    
-                                    // Restore the active drawing mode
-                                    if (activeToolId === 'draw-point') {
-                                        terraDraw.setMode('point');
-                                    } else if (activeToolId === 'draw-line') {
-                                        terraDraw.setMode('linestring');
-                                    } else if (activeToolId === 'draw-polygon') {
-                                        terraDraw.setMode('polygon');
-                                    }
-                                    
-                                    // Clear savedDrawings since they're now in TerraDraw
-                                    savedDrawings = [];
-                                }, 100);
+                    // Re-initialize TerraDraw
+                    initializeTerraDraw();
+                    
+                    if (drawingsSnapshot.length > 0) {
+                        if (wasDrawingActive && activeToolId) {
+                            terraDraw.start();
+                            terraDraw.addFeatures(drawingsSnapshot);
+                            // Restore active mode
+                            const mode = activeToolId.split('-')[1]; // e.g., 'point' from 'draw-point'
+                            if (['point', 'linestring', 'polygon'].includes(mode)) {
+                                terraDraw.setMode(mode);
                             }
-                            // If not drawing active, keep static display (already shown above)
+                            savedDrawings = [];
+                        } else {
+                            savedDrawings = drawingsSnapshot;
+                            displaySavedDrawings();
                         }
-                        
-                        if (is3DMode) {
-                            // Re-apply 3D settings if they were active
-                            setTimeout(() => {
-                                apply3DSettings();
-                            }, 200);
-                        }
-                    });
+                    }
+
+                    if (is3DMode) {
+                        apply3DSettings();
+                    }
                 });
             }
         });
@@ -476,6 +453,11 @@ function setupThreeDControls() {
 
     document.getElementById('3d-buildings').addEventListener('change', (e) => {
         if (e.target.checked) {
+            // Ensure 3D view is enabled when buildings are turned on
+            if (!document.getElementById('3d-view').checked) {
+                document.getElementById('3d-view').checked = true;
+                enable3DView();
+            }
             add3DBuildings();
         } else {
             remove3DBuildings();
@@ -484,6 +466,11 @@ function setupThreeDControls() {
 
     document.getElementById('3d-terrain').addEventListener('change', (e) => {
         if (e.target.checked) {
+            // Ensure 3D view is enabled when terrain is turned on
+            if (!document.getElementById('3d-view').checked) {
+                document.getElementById('3d-view').checked = true;
+                enable3DView();
+            }
             add3DTerrain();
         } else {
             remove3DTerrain();
@@ -497,8 +484,9 @@ function apply3DSettings() {
     const terrain = document.getElementById('3d-terrain').checked;
 
     if (view3D) enable3DView();
-    if (buildings) add3DBuildings();
+    // Apply terrain first, as it seems to help stabilize the building layer addition
     if (terrain) add3DTerrain();
+    if (buildings) add3DBuildings();
 }
 
 function enable3DView() {
@@ -632,22 +620,78 @@ function remove3DBuildings() {
 }
 
 function add3DTerrain() {
+    // IMPORTANT: Make sure your .env file in the /maplibre directory has VITE_MAPTILER_API_KEY='your_key'
+    const mapTilerKey = import.meta.env.VITE_MAPTILER_API_KEY;
+    if (!mapTilerKey) {
+        console.error("VITE_MAPTILER_API_KEY is not set. Please check your .env file and restart the dev server.");
+        return;
+    }
+    const terrainUrl = `https://api.maptiler.com/tiles/terrain-rgb-v2/tiles.json?key=${mapTilerKey}`;
+
+    const terrainSource = {
+        type: 'raster-dem',
+        url: terrainUrl,
+        tileSize: 256,
+        //maxzoom: 14 // Prevent loading high-res tiles for distant terrain
+    };
+
+    const hillshadeSource = {
+        type: 'raster-dem',
+        url: terrainUrl,
+        tileSize: 256,
+        //maxzoom: 14 // Prevent loading high-res tiles for distant terrain
+    };
+
+    const hillshadeLayer = {
+        id: 'hills',
+        type: 'hillshade',
+        source: 'hillshadeSource',
+        layout: { visibility: 'visible' },
+        paint: { 'hillshade-shadow-color': '#473B24' }
+    };
+    
+    // With MapLibre v2+, we don't need to add a sky layer manually.
+    // It's often handled by the style or terrain settings.
+
     if (!map.getSource('terrainSource')) {
-        map.addSource('terrainSource', {
-            type: 'raster-dem',
-            url: 'https://demotiles.maplibre.org/terrain-tiles/tiles.json',
-            tileSize: 256
-        });
+        map.addSource('terrainSource', terrainSource);
+    }
+    if (!map.getSource('hillshadeSource')) {
+        map.addSource('hillshadeSource', hillshadeSource);
     }
     
-    map.setTerrain({ source: 'terrainSource', exaggeration: 1.5 });
+    if (!map.getLayer('hills')) {
+        map.addLayer(hillshadeLayer);
+    }
+
+    // Add a sky layer and fog to improve performance and aesthetics
+    // map.setSky({
+    //     'sky-color': '#cae0f0',          // a light blue sky
+    //     'sky-horizon-blend': 0.2,       // blend between sky and horizon
+    //     'horizon-color': '#d4e4f0',      // a hazy white-blue horizon
+    //     'horizon-fog-blend': 0.8,       // blend between horizon and fog
+    //     'fog-color': '#d4e4f0',          // fog color should match horizon
+    //     'fog-ground-blend': 0.2         // how much fog blends with the ground
+    // });
+
+    map.setTerrain({ source: 'terrainSource', exaggeration: 1.0 });
+    console.log('3D Terrain enabled');
 }
 
 function remove3DTerrain() {
     map.setTerrain(null);
+    map.setSky(undefined); // Remove the sky and fog settings
+    if (map.getLayer('hills')) {
+        map.removeLayer('hills');
+    }
+    if (map.getSource('hillshadeSource')) {
+        map.removeSource('hillshadeSource');
+    }
+    // Only remove terrainSource if it's not being used by other layers (it isn't here)
     if (map.getSource('terrainSource')) {
         map.removeSource('terrainSource');
     }
+    console.log('3D Terrain disabled');
 }
 
 // Drawing tools
